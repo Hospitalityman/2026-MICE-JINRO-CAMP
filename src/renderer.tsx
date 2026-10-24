@@ -15,7 +15,7 @@ export const renderer = jsxRenderer(({ children, title }: any) => {
         <meta property="og:description" content={`${EVENT.slogan} | ${EVENT.date} | ${EVENT.fee}`} />
         <meta property="og:image" content="/static/logo.png" />
         <link rel="icon" href="/static/logo.png" />
-        <link href="/static/style.css?v=1" rel="stylesheet" />
+        <link href="/static/style.css?v=2" rel="stylesheet" />
       </head>
       <body>{children}</body>
     </html>

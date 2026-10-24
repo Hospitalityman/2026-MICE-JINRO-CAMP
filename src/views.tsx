@@ -18,7 +18,6 @@ export const Footer = () => (
     <div class="wrap">
       <p><img src="/static/logo.png" alt="" /><b>{EVENT.org}</b></p>
       <p>문의: <a href={`tel:${EVENT.contact.replace(/\D/g, '')}`}>{EVENT.contact}</a> ({EVENT.teacher})</p>
-      <p>행사 종료 후 참가자 명단이 공문으로 발송될 예정입니다.</p>
       <p><a href="/admin" style="font-weight:500;opacity:.55">관리자</a></p>
     </div>
   </footer>

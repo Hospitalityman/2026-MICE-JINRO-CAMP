@@ -36,6 +36,7 @@ app.get('/', (c) =>
             <div><dt>신청기간</dt><dd>{EVENT.applyPeriodText}</dd></div>
             <div><dt>문의</dt><dd><a href={`tel:${EVENT.contact.replace(/\D/g, '')}`}><b>{EVENT.contact}</b></a></dd></div>
           </dl>
+          <p class="notice-line" id="attend-notice">📌 현장 출석확인증은 분실 우려가 있어 발급하지 않으며, 행사 종료 후 소속 중학교로 참가자 명단 확인 공문을 발송해 드립니다.</p>
         </section>
 
         <section class="sec" id="cta-section">
@@ -75,7 +76,6 @@ app.get('/', (c) =>
               <li>등록은 각 차시 시작 30분 전부터 <b>{EVENT.regPlace}</b>에서 진행됩니다.</li>
               <li>시식·시음이 있으니 <b>식품 알레르기</b>가 있으면 신청서에 꼭 적어 주세요.</li>
               <li>셀프 취소는 {EVENT.cancelDeadlineText}까지 이름·휴대폰 번호로 조회 후 가능합니다.</li>
-              <li>행사 종료 후 참가자 명단이 소속 중학교로 공문 발송될 예정입니다.</li>
             </ul>
           </div>
         </section>
@@ -212,7 +212,7 @@ app.get('/admin', (c) => {
   return c.html(
     `<!DOCTYPE html><html lang="ko"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex,nofollow"><title>관리자 | ${EVENT.title}</title><link rel="icon" href="/static/logo.png">
-<link rel="stylesheet" href="/static/style.css?v=1"><link rel="stylesheet" href="/static/admin.css?v=1"></head>
+<link rel="stylesheet" href="/static/style.css?v=2"><link rel="stylesheet" href="/static/admin.css?v=1"></head>
 <body class="adm"><div id="app"></div>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js"></script>
