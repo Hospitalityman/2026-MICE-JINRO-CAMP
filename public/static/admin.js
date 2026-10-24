@@ -70,7 +70,7 @@
     body.innerHTML =
       '<div class="stat"><div><b>' + tot.c + '</b><span>확정 인원 / 총정원 ' + tot.cap + '</span></div><div><b>' + tot.w + '</b><span>대기 인원</span></div><div><b>' + tot.x + '</b><span>취소 건</span></div><div><b>' + tot.a + '</b><span>현장 출석</span></div></div>' +
       '<div class="card" style="margin-bottom:12px"><b>📢 신청 접수 상태: <span style="color:' + (gate.open ? 'var(--ok)' : 'var(--bad)') + '">' + (gate.open ? '접수 중' : '접수 중지') + '</span></b> <span class="mini">(' + stLabel[applyState] + ')</span>' +
-      '<div class="mini" style="margin:4px 0 10px">신청 마감은 수동으로 진행합니다. 「신청 마감」을 누르면 모든 신규 신청이 즉시 차단됩니다. (자동 모드: 10/26 00:00 ~ 11/11 23:59 접수)</div>' +
+      '<div class="mini" style="margin:4px 0 10px">신청 마감은 수동으로 진행합니다. 「신청 마감」을 누르면 모든 신규 신청이 즉시 차단됩니다. (자동 모드: 11/11 23:59까지 접수, 이후 자동 종료)</div>' +
       '<div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn btn-sm btn-danger" data-as="closed">⛔ 신청 마감(전체)</button><button class="btn btn-sm btn-plum" data-as="open">▶ 강제 열기</button><button class="btn btn-sm btn-line" data-as="auto">⏱ 자동(기간 기준)</button></div></div>' +
       '<div class="pgrid">' + programs.map((p) => {
         const pst = PST[p.status];

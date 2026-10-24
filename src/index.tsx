@@ -113,7 +113,7 @@ app.get('/apply', (c) =>
             <label class="f" for="phone">휴대폰 번호 <span class="req">*</span></label>
             <input type="tel" id="phone" name="phone" inputmode="numeric" autocomplete="tel" maxlength="13" placeholder="010-0000-0000" />
 
-            <label class="f" for="email">이메일 <small>(선택)</small></label>
+            <label class="f" for="email">이메일 <span class="req">*</span></label>
             <input type="email" id="email" name="email" autocomplete="email" maxlength="100" placeholder="example@email.com" />
 
             <label class="f" for="school">소속 중학교명 <span class="req">*</span></label>

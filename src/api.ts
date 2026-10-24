@@ -184,6 +184,7 @@ api.post('/admin/login', async (c) => {
     return c.json({ ok: false, error: '로그인 시도가 너무 많습니다. 10분 후 다시 시도해 주세요.' }, 429)
   }
   const b: any = await c.req.json().catch(() => ({}))
+  if (!adminPassword(c.env)) return c.json({ ok: false, error: '관리자 비밀번호가 서버에 설정되지 않았습니다.' }, 503)
   if (!safeEqual(String(b.password ?? ''), adminPassword(c.env))) {
     await db.prepare(`INSERT INTO login_fail(ip,count,last_at) VALUES(?,1,?)
       ON CONFLICT(ip) DO UPDATE SET count=CASE WHEN ?-last_at>=600 THEN 1 ELSE count+1 END, last_at=?`)

@@ -14,7 +14,6 @@ export const EVENT = {
   teacher: '특성화운영부 민희찬 선생님',
   regPlace: '학교 정문',
   gatherPlace: '세미나실',
-  applyStart: '2026-10-26T00:00:00+09:00',
   applyPeriodText: '2026년 10월 26일(월) ~ 11월 11일(수)',
   cancelDeadline: '2026-11-12T00:00:00+09:00', // 11/11 23:59:59 KST 까지 셀프 취소 가능
   cancelDeadlineText: '11월 11일(수)',

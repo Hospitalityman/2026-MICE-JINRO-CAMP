@@ -13,9 +13,7 @@ export function applyGate(state: string | null | undefined, now = Date.now()) {
   const s = state || 'auto'
   if (s === 'closed') return { open: false, reason: '신청이 마감되었습니다.' }
   if (s === 'open') return { open: true, reason: '' }
-  const start = Date.parse(EVENT.applyStart)
   const end = Date.parse(EVENT.cancelDeadline)
-  if (now < start) return { open: false, reason: `신청은 ${EVENT.applyPeriodText.split('~')[0].trim()}부터 시작됩니다.` }
   if (now >= end) return { open: false, reason: '신청 기간이 종료되었습니다.' }
   return { open: true, reason: '' }
 }
@@ -42,6 +40,7 @@ export function validateReg(b: any, manual = false): { ok: true; v: RegInput } |
   if (school.length < 2) return fail('소속 중학교명을 입력해 주세요.', 'school')
 
   const email = clean(b.email, 100)
+  if (!manual && !email) return fail('이메일을 입력해 주세요.', 'email')
   if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return fail('이메일 형식이 올바르지 않습니다.', 'email')
 
   const num = (x: any) => (x === '' || x === null || x === undefined ? null : Number(x))
@@ -94,7 +93,7 @@ async function hmac(secret: string, msg: string) {
   const key = await crypto.subtle.importKey('raw', enc.encode(secret), { name: 'HMAC', hash: 'SHA-256' }, false, ['sign'])
   return b64u(await crypto.subtle.sign('HMAC', key, enc.encode(msg)))
 }
-export const adminPassword = (env: Bindings) => env.ADMIN_PASSWORD || '00112233'
+export const adminPassword = (env: Bindings) => env.ADMIN_PASSWORD || ''
 
 export async function makeToken(env: Bindings, ttlSec = 60 * 60 * 12) {
   const exp = Math.floor(Date.now() / 1000) + ttlSec
@@ -102,7 +101,7 @@ export async function makeToken(env: Bindings, ttlSec = 60 * 60 * 12) {
   return `${payload}.${await hmac('sess:' + adminPassword(env), payload)}`
 }
 export async function verifyToken(env: Bindings, token: string | undefined) {
-  if (!token) return false
+  if (!token || !adminPassword(env)) return false
   const parts = token.split('.')
   if (parts.length !== 3) return false
   const payload = `${parts[0]}.${parts[1]}`

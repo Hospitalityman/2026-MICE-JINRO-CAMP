@@ -21,7 +21,7 @@
 | `/` | 메인(행사 안내, 현황) |
 | `/apply` | 신청서 |
 | `/check` | 신청 조회·취소 |
-| `/admin` | 관리자 (비밀번호 로그인) |
+| `/admin` | 관리자 (비밀번호 로그인; 환경변수 ADMIN_PASSWORD 필수) |
 | `/api/programs` | 정원 현황(공개) |
 | `/api/register` `/api/lookup` `/api/cancel` | 신청/조회/취소 |
 | `/api/admin/*` | 관리자 API (쿠키 인증) |
@@ -31,8 +31,8 @@
 
 ## 설정
 - 행사 정보/장소/시간: `src/config.ts`
-- 관리자 비밀번호: 환경변수 `ADMIN_PASSWORD` (로컬 `.dev.vars`, 배포 시 secret). 미설정 시 기본값 사용
-- 신청 접수: 관리자 > 현황에서 `자동(10/26~11/11)` / `강제 열기` / `신청 마감` 전환
+- 관리자 비밀번호: 환경변수 `ADMIN_PASSWORD` (로컬 `.dev.vars`, 배포 시 secret). 미설정 시 관리자 로그인 불가
+- 신청 접수: 관리자 > 현황에서 `자동(11/11 23:59까지)` / `강제 열기` / `신청 마감` 전환
 
 ## 로컬 실행
 ```
@@ -41,5 +41,12 @@ npm run db:migrate:local
 pm2 start ecosystem.config.cjs
 ```
 
-## 배포 (미확정)
-D1 생성/배포 방식 확인 필요. 배포 시 `wrangler.jsonc`의 `database_id` 교체, `npm run db:migrate:prod`, `ADMIN_PASSWORD` secret 등록.
+## 배포 (Cloudflare Pages · 사용자 계정)
+- **운영 주소**: https://busan-mice-camp.pages.dev  (관리자: /admin)
+- Pages 프로젝트: `busan-mice-camp` / D1: `mice-camp-production` (바인딩 `DB`)
+- 관리자 비밀번호는 Pages secret `ADMIN_PASSWORD`로 저장 (코드·저장소에 없음)
+- 재배포: `npm run build && npx wrangler pages deploy dist --project-name busan-mice-camp --branch main`
+- 스키마 변경 시: `npm run db:migrate:prod`
+
+## 필수 입력 항목
+이름, 휴대폰, 이메일, 중학교, 반·번호, 예상 내신(%), 보호자 성함·연락처, 담임교사 성함·연락처, 알레르기(없음/있음), 교복 확인, 개인정보 동의 — 모두 필수. (관리자 수기 추가는 이름·휴대폰·중학교만 필수)

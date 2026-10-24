@@ -39,9 +39,9 @@ export const Privacy = () => (
 
 export const GoCards = () => (
   <div class="go3">
-    <div class="go eat"><div class="ic" aria-hidden="true">🍪</div><div><b><em>먹 GO!</em> 시식·시음<span class="min">실습실 투어 중</span></b><p>실습실별 빵·음식·음료를 직접 맛보고 마셔 보세요. (불가한 실습실은 체험 활동으로 운영)</p></div></div>
-    <div class="go see"><div class="ic" aria-hidden="true">👀</div><div><b><em>보 GO!</em> 실습실 투어<span class="min">45분</span></b><p>홍보대사 선배와 함께 학과 실습실을 돌아보고 간단한 시연을 구경해요.</p></div></div>
-    <div class="go hear"><div class="ic" aria-hidden="true">👂</div><div><b><em>듣 GO!</em> 학과 상담<span class="min">45분</span></b><p>2027학년도 입시 정보, 면접 꿀팁을 듣고 만족도 설문으로 마무리해요.</p></div></div>
+    <div class="go eat"><div class="ic" aria-hidden="true">🍪</div><div><b class="gt"><em>먹 GO!</em> <span class="nw">시식·시음</span></b><span class="min">실습실 투어 중</span><p>실습실별 빵·음식·음료를 직접 맛보고 마셔 보세요. (불가한 실습실은 체험 활동으로 운영)</p></div></div>
+    <div class="go see"><div class="ic" aria-hidden="true">👀</div><div><b class="gt"><em>보 GO!</em> <span class="nw">실습실 투어</span></b><span class="min">45분</span><p>홍보대사 선배와 함께 학과 실습실을 돌아보고 간단한 시연을 구경해요.</p></div></div>
+    <div class="go hear"><div class="ic" aria-hidden="true">👂</div><div><b class="gt"><em>듣 GO!</em> <span class="nw">학과 상담</span></b><span class="min">45분</span><p>2027학년도 입시 정보, 면접 꿀팁을 듣고 만족도 설문으로 마무리해요.</p></div></div>
   </div>
 )
 

@@ -1,14 +1,14 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "webapp",
+  "name": "busan-mice-camp",
   "compatibility_date": "2026-09-17",
   "pages_build_output_dir": "./dist",
   "compatibility_flags": ["nodejs_compat"],
   "d1_databases": [
     {
       "binding": "DB",
-      "database_name": "webapp-production",
-      "database_id": "local-placeholder-id"
+      "database_name": "mice-camp-production",
+      "database_id": "8de69d72-e37e-476a-9bf6-fa547540e499"
     }
   ]
 }
