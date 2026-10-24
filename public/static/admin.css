@@ -1,0 +1,51 @@
+body.adm{background:#f6efe4}
+.adm .top{background:var(--plum-d);color:#fff;position:sticky;top:0;z-index:30}
+.adm .top .in{max-width:1100px;margin:0 auto;padding:10px 14px;display:flex;align-items:center;gap:10px}
+.adm .top img{width:34px;height:34px;background:#fff;border-radius:50%}
+.adm .top b{font-size:1rem}.adm .top .sp{flex:1}
+.adm .tabs{background:#fff;border-bottom:1px solid var(--line);position:sticky;top:55px;z-index:29;overflow-x:auto;white-space:nowrap}
+.adm .tabs .in{max-width:1100px;margin:0 auto;padding:0 8px;display:flex}
+.adm .tabs button{border:0;background:none;padding:13px 14px;font:inherit;font-weight:800;color:var(--muted);border-bottom:3px solid transparent;cursor:pointer}
+.adm .tabs button.on{color:var(--plum);border-color:var(--maple)}
+.adm main{max-width:1100px;margin:0 auto;padding:14px}
+.adm .login{max-width:360px;margin:12vh auto;padding:0 16px}
+.pgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(310px,1fr));gap:12px}
+.pc{background:#fff;border:1px solid var(--line);border-radius:14px;padding:14px}
+.pc h3{margin:0 0 2px;font-size:1rem;color:var(--plum)}
+.pc .big{font-size:1.8rem;font-weight:900;color:var(--ink)}
+.pc .big small{font-size:.9rem;color:var(--muted);font-weight:700}
+.pc .sub{display:flex;gap:10px;flex-wrap:wrap;font-size:.82rem;color:var(--muted);margin:2px 0 8px}
+.pc .act{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
+.pc .cap{display:flex;gap:6px;align-items:center;margin-top:8px;font-size:.85rem}
+.pc .cap input{width:80px;min-height:38px;padding:6px 10px}
+.toolbar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;align-items:center}
+.toolbar select,.toolbar input{width:auto;min-height:42px;padding:8px 10px;font-size:.92rem}
+.toolbar input[type=search]{flex:1;min-width:180px}
+.tbl-wrap{background:#fff;border:1px solid var(--line);border-radius:12px;overflow:auto;max-height:70vh}
+table.t{border-collapse:collapse;width:100%;font-size:.85rem;min-width:900px}
+table.t th{position:sticky;top:0;background:#f7ecdc;text-align:left;padding:9px 10px;white-space:nowrap;border-bottom:1px solid var(--line);z-index:1}
+table.t td{padding:8px 10px;border-bottom:1px solid #f1e7d6;vertical-align:middle}
+table.t tr:hover td{background:#fffaf0}
+table.t tr.cx td{color:#aaa;text-decoration:line-through}
+table.t tr.wt td{background:#fff8e6}
+.chip{display:inline-block;padding:1px 8px;border-radius:99px;font-size:.72rem;font-weight:800;white-space:nowrap}
+.c-ok{background:#e0f2e7;color:var(--ok)}.c-wt{background:#fdecc8;color:var(--warn)}.c-cx{background:#e8e2da;color:#6d6259}
+.c-al{background:#fde0dd;color:var(--bad)}.c-man{background:#e5ddf3;color:#4b2f8f}
+.stat{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-bottom:12px}
+.stat div{background:#fff;border:1px solid var(--line);border-radius:12px;padding:12px}
+.stat b{display:block;font-size:1.5rem;color:var(--plum)}.stat span{font-size:.78rem;color:var(--muted)}
+.ci-list{display:grid;gap:8px}
+.ci{display:flex;align-items:center;gap:12px;background:#fff;border:1.5px solid var(--line);border-radius:12px;padding:10px 12px}
+.ci.on{background:#e8f6ed;border-color:#8cc9a4}
+.ci input[type=checkbox]{width:30px;height:30px;accent-color:var(--ok);flex:0 0 30px}
+.ci .nm{font-weight:900;font-size:1.05rem}
+.ci .mt{font-size:.82rem;color:var(--muted)}
+.ci .al{font-size:.8rem;color:var(--bad);font-weight:800}
+.modal{position:fixed;inset:0;background:rgba(40,20,30,.55);z-index:100;display:grid;place-items:center;padding:14px}
+.modal .box{background:#fff;border-radius:16px;max-width:520px;width:100%;max-height:92vh;overflow:auto;padding:18px}
+.modal h3{margin:0 0 6px;color:var(--plum)}
+.qrbox{text-align:center}.qrbox svg,.qrbox img{width:230px;height:230px}
+.dl{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:10px}
+.dl .card{padding:14px}
+.toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);background:#2f2220;color:#fff;padding:12px 18px;border-radius:12px;z-index:200;font-weight:700;font-size:.9rem;max-width:90vw}
+.row-act{display:flex;gap:4px}
