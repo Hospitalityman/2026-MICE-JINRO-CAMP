@@ -36,7 +36,7 @@ app.get('/', (c) =>
             <div><dt>신청기간</dt><dd>{EVENT.applyPeriodText}</dd></div>
             <div><dt>문의</dt><dd><a href={`tel:${EVENT.contact.replace(/\D/g, '')}`}><b>{EVENT.contact}</b></a></dd></div>
           </dl>
-          <p class="notice-line" id="attend-notice">📌 현장 출석확인증은 분실 우려가 있어 발급하지 않으며, 행사 종료 후 소속 중학교로 참가자 명단 확인 공문을 발송해 드립니다.</p>
+          <p class="notice-line" id="attend-notice"><span class="pin" aria-hidden="true">📌</span><span class="txt">현장 출석확인증은 분실 우려가 있어 발급하지 않으며,<br />행사 종료 후 소속 중학교로 참가자 명단 확인 공문을 발송해 드립니다.</span></p>
         </section>
 
         <section class="sec" id="cta-section">
@@ -212,7 +212,7 @@ app.get('/admin', (c) => {
   return c.html(
     `<!DOCTYPE html><html lang="ko"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex,nofollow"><title>관리자 | ${EVENT.title}</title><link rel="icon" href="/static/logo.png">
-<link rel="stylesheet" href="/static/style.css?v=2"><link rel="stylesheet" href="/static/admin.css?v=1"></head>
+<link rel="stylesheet" href="/static/style.css?v=3"><link rel="stylesheet" href="/static/admin.css?v=1"></head>
 <body class="adm"><div id="app"></div>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js"></script>

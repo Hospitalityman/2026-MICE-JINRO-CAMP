@@ -136,4 +136,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--plum);bo
   .hero h1{font-size:1.9rem}.hero .slogan{font-size:2.4rem}
 }
 
-.notice-line{margin:6px 0 0;padding:12px 14px;background:#fff1d6;border:1px solid #f2d596;border-radius:12px;color:#6b3a00;font-size:.9rem;font-weight:700;line-height:1.5}
+.notice-line{display:flex;align-items:flex-start;gap:8px;margin:6px 0 0;padding:12px 14px;background:#fff1d6;border:1px solid #f2d596;border-radius:12px;color:#6b3a00;font-size:.9rem;font-weight:700;line-height:1.5}
+.notice-line .pin{flex:0 0 auto}
+.notice-line .txt{flex:1;min-width:0;word-break:keep-all}
+@media(max-width:400px){.notice-line{font-size:.82rem;padding:11px 10px}}
