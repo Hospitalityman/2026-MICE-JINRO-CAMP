@@ -44,8 +44,8 @@
     qs.set('status', filter.status || 'all');
     if (filter.q) qs.set('q', filter.q);
     const j = await api('/admin/registrations?' + qs);
-    if (await guard(j)) return false;
-    regs = j.items || []; return true;
+    if (await guard(j)) return null;
+    return j.items || [];
   }
   async function allRegs() {
     const j = await api('/admin/registrations?status=all');
@@ -57,7 +57,7 @@
     body.innerHTML = '<p class="mini">불러오는 중…</p>';
     if (!(await loadOverview())) return;
     if (tab === 'dash') dash(body);
-    else if (tab === 'list') { if (await loadRegs()) list(body); }
+    else if (tab === 'list') { const r = await loadRegs(); if (r) { regs = r; list(body); } }
     else if (tab === 'checkin') { filter2(); }
     else if (tab === 'export') exportView(body);
     else if (tab === 'qr') qrView(body);
@@ -114,32 +114,48 @@
     body.innerHTML =
       '<div class="toolbar"><select id="fp"><option value="">전체 프로그램</option>' + programs.map((p) => '<option value="' + p.id + '"' + (String(p.id) === String(filter.program_id) ? ' selected' : '') + '>' + pLabel(p) + '</option>').join('') + '</select>' +
       '<select id="fs">' + [['all', '전체 상태'], ['confirmed', '확정'], ['waiting', '대기'], ['cancelled', '취소']].map((o) => '<option value="' + o[0] + '"' + (o[0] === filter.status ? ' selected' : '') + '>' + o[1] + '</option>').join('') + '</select>' +
-      '<input type="search" id="fq" placeholder="이름 · 중학교 · 전화번호 검색" value="' + esc(filter.q) + '"><button class="btn btn-sm btn-plum" id="fadd">+ 수기 추가</button></div>' +
-      '<div class="mini" style="margin-bottom:6px">총 <b>' + regs.length + '</b>건</div>' +
-      '<div class="tbl-wrap"><table class="t"><thead><tr><th>#</th><th>상태</th><th>프로그램</th><th>이름</th><th>휴대폰</th><th>중학교</th><th>반/번</th><th>내신%</th><th>보호자</th><th>담임교사</th><th>알레르기</th><th>신청시각(KST)</th><th>관리</th></tr></thead><tbody>' +
-      (regs.map((r) => {
-        const st = ST[r.status];
-        return '<tr class="' + (r.status === 'cancelled' ? 'cx' : r.status === 'waiting' ? 'wt' : '') + '"><td>' + r.id + '</td><td><span class="chip ' + st[1] + '">' + st[0] + '</span>' + (r.is_manual ? ' <span class="chip c-man">수기</span>' : '') + (r.cancelled_by ? ' <span class="mini">(' + (r.cancelled_by === 'self' ? '본인' : '관리자') + ')</span>' : '') + '</td>' +
-          '<td>' + SESSIONS[r.session].l + ' ' + DEPTS[r.dept].s + '</td><td><b>' + esc(r.name) + '</b></td><td>' + fmtPhone(r.phone) + '</td><td>' + esc(r.school) + '</td><td>' + (r.class_no || '-') + '/' + (r.student_no || '-') + '</td><td>' + (r.grade_pct == null ? '-' : r.grade_pct + '%') + '</td>' +
-          '<td>' + esc(r.guardian_name) + '<br><span class="mini">' + fmtPhone(r.guardian_phone) + '</span></td><td>' + esc(r.teacher_name) + '<br><span class="mini">' + fmtPhone(r.teacher_phone) + '</span></td>' +
-          '<td>' + (r.allergy ? '<span class="chip c-al">' + esc(r.allergy) + '</span>' : '-') + '</td><td>' + kst(r.created_at) + '</td>' +
-          '<td><div class="row-act">' + (r.status === 'waiting' ? '<button class="btn btn-sm btn-plum" data-confirm="' + r.id + '">확정</button>' : '') + (r.status !== 'cancelled' ? '<button class="btn btn-sm btn-danger" data-cx="' + r.id + '" data-nm="' + esc(r.name) + '">취소</button>' : '') + '</div></td></tr>';
-      }).join('') || '<tr><td colspan="13" style="text-align:center;padding:30px;color:var(--muted)">신청 내역이 없습니다.</td></tr>') + '</tbody></table></div>';
-    const reload = async () => { await loadRegs(); list(body); };
+      '<input type="search" id="fq" placeholder="이름 · 중학교 · 전화번호 검색" value="' + esc(filter.q) + '" autocomplete="off" enterkeyhint="search"><button class="btn btn-sm btn-plum" id="fadd">+ 수기 추가</button></div>' +
+      '<div id="list-result"></div>';
+
+    let seq = 0;
+    const draw = () => {
+      $('#list-result').innerHTML =
+        '<div class="mini" style="margin-bottom:6px">총 <b>' + regs.length + '</b>건</div>' +
+        '<div class="tbl-wrap"><table class="t"><thead><tr><th>#</th><th>상태</th><th>프로그램</th><th>이름</th><th>휴대폰</th><th>중학교</th><th>반/번</th><th>내신%</th><th>보호자</th><th>담임교사</th><th>알레르기</th><th>신청시각(KST)</th><th>관리</th></tr></thead><tbody>' +
+        (regs.map((r) => {
+          const st = ST[r.status];
+          return '<tr class="' + (r.status === 'cancelled' ? 'cx' : r.status === 'waiting' ? 'wt' : '') + '"><td>' + r.id + '</td><td><span class="chip ' + st[1] + '">' + st[0] + '</span>' + (r.is_manual ? ' <span class="chip c-man">수기</span>' : '') + (r.cancelled_by ? ' <span class="mini">(' + (r.cancelled_by === 'self' ? '본인' : '관리자') + ')</span>' : '') + '</td>' +
+            '<td>' + SESSIONS[r.session].l + ' ' + DEPTS[r.dept].s + '</td><td><b>' + esc(r.name) + '</b></td><td>' + fmtPhone(r.phone) + '</td><td>' + esc(r.school) + '</td><td>' + (r.class_no || '-') + '/' + (r.student_no || '-') + '</td><td>' + (r.grade_pct == null ? '-' : r.grade_pct + '%') + '</td>' +
+            '<td>' + esc(r.guardian_name) + '<br><span class="mini">' + fmtPhone(r.guardian_phone) + '</span></td><td>' + esc(r.teacher_name) + '<br><span class="mini">' + fmtPhone(r.teacher_phone) + '</span></td>' +
+            '<td>' + (r.allergy ? '<span class="chip c-al">' + esc(r.allergy) + '</span>' : '-') + '</td><td>' + kst(r.created_at) + '</td>' +
+            '<td><div class="row-act">' + (r.status === 'waiting' ? '<button class="btn btn-sm btn-plum" data-confirm="' + r.id + '">확정</button>' : '') + (r.status !== 'cancelled' ? '<button class="btn btn-sm btn-danger" data-cx="' + r.id + '" data-nm="' + esc(r.name) + '">취소</button>' : '') + '</div></td></tr>';
+        }).join('') || '<tr><td colspan="13" style="text-align:center;padding:30px;color:var(--muted)">신청 내역이 없습니다.</td></tr>') + '</tbody></table></div>';
+      $$('[data-cx]').forEach((b) => (b.onclick = async () => {
+        if (!confirm(b.dataset.nm + ' 학생의 신청을 취소하시겠습니까?\n(확정자 취소 시 대기 1번이 자동 확정됩니다.)')) return;
+        const j = await api('/admin/registrations/' + b.dataset.cx + '/cancel', { method: 'POST', body: {} });
+        if (j.ok) { toast('취소되었습니다.' + (j.promoted ? ' 대기자 ' + j.promoted + '명 자동 확정.' : '')); await loadOverview(); reload(); } else toast(j.error || '오류');
+      }));
+      $$('[data-confirm]').forEach((b) => (b.onclick = async () => {
+        if (!confirm('대기자를 정원과 무관하게 확정하시겠습니까?')) return;
+        const j = await api('/admin/registrations/' + b.dataset.confirm + '/confirm', { method: 'POST', body: {} });
+        if (j.ok) { toast('확정되었습니다.'); reload(); } else toast('오류');
+      }));
+    };
+    // 입력창은 건드리지 않고 결과 영역만 갱신. 늦게 도착한 오래된 응답은 버림.
+    const reload = async () => {
+      const my = ++seq;
+      const r = await loadRegs();
+      if (my !== seq || !r) return;
+      regs = r; draw();
+    };
+    draw();
     $('#fp').onchange = (e) => { filter.program_id = e.target.value; reload(); };
     $('#fs').onchange = (e) => { filter.status = e.target.value; reload(); };
-    let tm; $('#fq').oninput = (e) => { clearTimeout(tm); tm = setTimeout(async () => { filter.q = e.target.value; await loadRegs(); const pos = $('#fq'); list(body); const n = $('#fq'); n.focus(); n.setSelectionRange(n.value.length, n.value.length); }, 300); };
+    const q = $('#fq'); let tm;
+    const go = () => { clearTimeout(tm); tm = setTimeout(() => { filter.q = q.value; reload(); }, 300); };
+    q.addEventListener('input', go);
+    q.addEventListener('compositionend', go); // 한글 조합 종료 시 최종 검색
     $('#fadd').onclick = () => addModal(filter.program_id);
-    $$('[data-cx]').forEach((b) => (b.onclick = async () => {
-      if (!confirm(b.dataset.nm + ' 학생의 신청을 취소하시겠습니까?\n(확정자 취소 시 대기 1번이 자동 확정됩니다.)')) return;
-      const j = await api('/admin/registrations/' + b.dataset.cx + '/cancel', { method: 'POST', body: {} });
-      if (j.ok) { toast('취소되었습니다.' + (j.promoted ? ' 대기자 ' + j.promoted + '명 자동 확정.' : '')); await loadOverview(); reload(); } else toast(j.error || '오류');
-    }));
-    $$('[data-confirm]').forEach((b) => (b.onclick = async () => {
-      if (!confirm('대기자를 정원과 무관하게 확정하시겠습니까?')) return;
-      const j = await api('/admin/registrations/' + b.dataset.confirm + '/confirm', { method: 'POST', body: {} });
-      if (j.ok) { toast('확정되었습니다.'); reload(); } else toast('오류');
-    }));
   }
 
   function addModal(pid) {
@@ -166,26 +182,43 @@
   }
 
   // ---------- 현장 출석 ----------
-  async function filter2() {
+  function filter2() {
     const body = $('#body');
-    const qs = new URLSearchParams({ status: 'confirmed' });
-    if (ciFilter.program_id) qs.set('program_id', ciFilter.program_id);
-    if (ciFilter.q) qs.set('q', ciFilter.q);
-    const j = await api('/admin/registrations?' + qs);
-    if (await guard(j)) return;
-    const items = j.items || [];
-    const done = items.filter((r) => r.attended).length;
     body.innerHTML = '<div class="toolbar"><select id="cp"><option value="">전체 프로그램</option>' + programs.map((p) => '<option value="' + p.id + '"' + (String(p.id) === String(ciFilter.program_id) ? ' selected' : '') + '>' + pLabel(p) + '</option>').join('') + '</select>' +
-      '<input type="search" id="cq" placeholder="🔍 이름 · 중학교 · 전화번호(뒷자리) 검색" value="' + esc(ciFilter.q) + '" autocomplete="off"></div>' +
-      '<div class="mini" style="margin-bottom:8px">확정자 <b>' + items.length + '</b>명 중 출석 <b style="color:var(--ok)">' + done + '</b>명 · 체크박스를 눌러 출석 처리하세요.</div><div class="ci-list">' +
-      (items.map((r) => '<label class="ci ' + (r.attended ? 'on' : '') + '"><input type="checkbox" data-a="' + r.id + '"' + (r.attended ? ' checked' : '') + '><div style="flex:1"><div class="nm">' + esc(r.name) + ' <span class="mini">' + esc(r.school) + '</span></div><div class="mt">' + SESSIONS[r.session].l + ' ' + DEPTS[r.dept].s + ' · ' + fmtPhone(r.phone) + (r.class_no ? ' · 3-' + r.class_no + '-' + r.student_no : '') + (r.attended_at ? ' · 출석 ' + kst(r.attended_at).slice(11) : '') + '</div>' + (r.allergy ? '<div class="al">⚠ 알레르기: ' + esc(r.allergy) + '</div>' : '') + '</div></label>').join('') || '<div class="card mini">검색 결과가 없습니다.</div>') + '</div>';
-    $('#cp').onchange = (e) => { ciFilter.program_id = e.target.value; filter2(); };
-    let tm; const q = $('#cq'); q.oninput = () => { clearTimeout(tm); tm = setTimeout(async () => { ciFilter.q = q.value; await filter2(); const n = $('#cq'); n.focus(); n.setSelectionRange(n.value.length, n.value.length); }, 250); };
-    $$('[data-a]').forEach((c) => (c.onchange = async () => {
-      const r = await api('/admin/registrations/' + c.dataset.a + '/attend', { body: { attended: c.checked } });
-      if (!r.ok) { toast('저장 실패'); c.checked = !c.checked; return; }
-      c.closest('.ci').classList.toggle('on', c.checked); toast(c.checked ? '출석 처리' : '출석 해제');
-    }));
+      '<input type="search" id="cq" placeholder="🔍 이름 · 중학교 · 전화번호(뒷자리) 검색" value="' + esc(ciFilter.q) + '" autocomplete="off" enterkeyhint="search"></div>' +
+      '<div id="ci-result"><p class="mini">불러오는 중…</p></div>';
+
+    let seq = 0, items = [];
+    const draw = () => {
+      const done = items.filter((r) => r.attended).length;
+      $('#ci-result').innerHTML = '<div class="mini" style="margin-bottom:8px">확정자 <b>' + items.length + '</b>명 중 출석 <b id="ci-done" style="color:var(--ok)">' + done + '</b>명 · 체크박스를 눌러 출석 처리하세요.</div><div class="ci-list">' +
+        (items.map((r) => '<label class="ci ' + (r.attended ? 'on' : '') + '"><input type="checkbox" data-a="' + r.id + '"' + (r.attended ? ' checked' : '') + '><div style="flex:1"><div class="nm">' + esc(r.name) + ' <span class="mini">' + esc(r.school) + '</span></div><div class="mt">' + SESSIONS[r.session].l + ' ' + DEPTS[r.dept].s + ' · ' + fmtPhone(r.phone) + (r.class_no ? ' · 3-' + r.class_no + '-' + r.student_no : '') + (r.attended_at ? ' · 출석 ' + kst(r.attended_at).slice(11) : '') + '</div>' + (r.allergy ? '<div class="al">⚠ 알레르기: ' + esc(r.allergy) + '</div>' : '') + '</div></label>').join('') || '<div class="card mini">검색 결과가 없습니다.</div>') + '</div>';
+      $$('[data-a]').forEach((c) => (c.onchange = async () => {
+        const r = await api('/admin/registrations/' + c.dataset.a + '/attend', { body: { attended: c.checked } });
+        if (!r.ok) { toast('저장 실패'); c.checked = !c.checked; return; }
+        const it = items.find((x) => String(x.id) === c.dataset.a); if (it) it.attended = c.checked ? 1 : 0;
+        c.closest('.ci').classList.toggle('on', c.checked);
+        const d = $('#ci-done'); if (d) d.textContent = items.filter((x) => x.attended).length;
+        toast(c.checked ? '출석 처리' : '출석 해제');
+      }));
+    };
+    // 입력창은 그대로 두고 결과 영역만 갱신. 오래된 응답은 버림.
+    const load = async () => {
+      const my = ++seq;
+      const qs = new URLSearchParams({ status: 'confirmed' });
+      if (ciFilter.program_id) qs.set('program_id', ciFilter.program_id);
+      if (ciFilter.q) qs.set('q', ciFilter.q);
+      const j = await api('/admin/registrations?' + qs);
+      if (my !== seq) return;
+      if (await guard(j)) return;
+      items = j.items || []; draw();
+    };
+    $('#cp').onchange = (e) => { ciFilter.program_id = e.target.value; load(); };
+    const q = $('#cq'); let tm;
+    const go = () => { clearTimeout(tm); tm = setTimeout(() => { ciFilter.q = q.value; load(); }, 250); };
+    q.addEventListener('input', go);
+    q.addEventListener('compositionend', go);
+    load();
   }
 
   // ---------- 엑셀 ----------
