@@ -186,7 +186,9 @@
     const body = $('#body');
     body.innerHTML = '<div class="toolbar"><select id="cp"><option value="">전체 프로그램</option>' + programs.map((p) => '<option value="' + p.id + '"' + (String(p.id) === String(ciFilter.program_id) ? ' selected' : '') + '>' + pLabel(p) + '</option>').join('') + '</select>' +
       '<input type="search" id="cq" placeholder="🔍 이름 · 중학교 · 전화번호(뒷자리) 검색" value="' + esc(ciFilter.q) + '" autocomplete="off" enterkeyhint="search"></div>' +
+      '<div style="margin:2px 0 10px"><button type="button" class="btn btn-plum btn-block" id="ci-xlsx">📥 출석 확인된 학생만 엑셀 다운로드</button></div>' +
       '<div id="ci-result"><p class="mini">불러오는 중…</p></div>';
+    $('#ci-xlsx').onclick = () => exportAttended();
 
     let seq = 0, items = [];
     const draw = () => {
@@ -224,9 +226,29 @@
   // ---------- 엑셀 ----------
   function exportView(body) {
     body.innerHTML = '<div class="dl"><div class="card"><h3 style="margin:0 0 6px;color:var(--plum)">📥 전체 엑셀 (.xlsx)</h3><p class="mini">시트: 전체신청현황 · 차시·학과별 요약 · 소속 중학교별 명단(공문용) · 차시·학과별 출석부(6개) · 알레르기 체크 명단<br>취소 건은 제외하고 확정·대기자만 명단에 포함됩니다.</p><button class="btn btn-primary btn-block" id="dlx">엑셀 다운로드</button></div>' +
-      '<div class="card"><h3 style="margin:0 0 6px;color:var(--plum)">🏫 공문용 명단만</h3><p class="mini">확정자만 소속 중학교별로 묶은 명단 (대기·취소 제외)</p><button class="btn btn-plum btn-block" id="dls">중학교별 명단 다운로드</button></div></div>';
+      '<div class="card"><h3 style="margin:0 0 6px;color:var(--plum)">🏫 공문용 명단만</h3><p class="mini">확정자만 소속 중학교별로 묶은 명단 (대기·취소 제외)</p><button class="btn btn-plum btn-block" id="dls">중학교별 명단 다운로드</button></div>' +
+      '<div class="card"><h3 style="margin:0 0 6px;color:var(--plum)">✅ 출석 확인자 명단만</h3><p class="mini">현장 출석 체크된 학생만 · 중학교, 이름, 반, 번호, 참여 프로그램, 출석체크 시간</p><button class="btn btn-primary btn-block" id="dla">출석자 명단 다운로드</button></div></div>';
     $('#dlx').onclick = () => makeXlsx(false);
     $('#dls').onclick = () => makeXlsx(true);
+    $('#dla').onclick = () => exportAttended();
+  }
+
+  // 출석 확인된 학생만 엑셀로 (중학교, 이름, 반, 번호, 참여 프로그램, 출석체크 시간)
+  async function exportAttended() {
+    if (!window.XLSX) return toast('엑셀 라이브러리를 불러오지 못했습니다. 인터넷 연결을 확인해 주세요.');
+    const all = await allRegs(); if (!all) return;
+    const rows = all.filter((r) => r.status === 'confirmed' && r.attended)
+      .sort((a, b) => a.school.localeCompare(b.school, 'ko') || (a.class_no || 0) - (b.class_no || 0) || (a.student_no || 0) - (b.student_no || 0) || a.name.localeCompare(b.name, 'ko'));
+    if (!rows.length) return toast('출석 처리된 학생이 아직 없습니다.');
+    const tm = (iso) => { if (!iso) return ''; return new Date(new Date(iso).getTime() + 9 * 3600e3).toISOString().slice(0, 19).replace('T', ' '); };
+    const aoa = [['중학교', '이름', '반', '번호', '참여 프로그램', '출석체크 시간']]
+      .concat(rows.map((r) => [r.school, r.name, r.class_no || '', r.student_no || '', SESSIONS[r.session].l + ' (' + SESSIONS[r.session].prog + ') ' + DEPTS[r.dept].n, tm(r.attended_at)]));
+    const ws = XLSX.utils.aoa_to_sheet(aoa);
+    ws['!cols'] = [20, 12, 6, 6, 34, 20].map((w) => ({ wch: w }));
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, '출석자 명단');
+    XLSX.writeFile(wb, '진로캠프_출석자명단_' + today() + '.xlsx');
+    toast('출석자 ' + rows.length + '명 다운로드를 시작합니다.');
   }
   async function makeXlsx(schoolOnly) {
     if (!window.XLSX) return toast('엑셀 라이브러리를 불러오지 못했습니다. 인터넷 연결을 확인해 주세요.');
