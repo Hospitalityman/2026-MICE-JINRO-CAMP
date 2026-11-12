@@ -283,10 +283,10 @@ admin.post('/registrations', async (c) => {
   try {
     await db.prepare(
       `INSERT INTO registrations (program_id,name,phone,email,school,grade,class_no,student_no,grade_pct,guardian_name,guardian_phone,
-        teacher_name,teacher_phone,allergy,uniform_ok,consent,status,attended,attended_at,is_manual,created_at)
-       VALUES (?,?,?,?,?,3,?,?,?,?,?,?,?,?,?,?,'confirmed',?,?,1,?)`)
+        teacher_name,teacher_phone,allergy,uniform_ok,consent,status,attended,attended_at,is_manual,is_onsite,created_at)
+       VALUES (?,?,?,?,?,3,?,?,?,?,?,?,?,?,?,?,'confirmed',?,?,1,?,?)`)
       .bind(v.program_id, v.name, v.phone, v.email, v.school, v.class_no, v.student_no, v.grade_pct, v.guardian_name, v.guardian_phone,
-        v.teacher_name, v.teacher_phone, v.allergy, v.uniform_ok, v.consent, onsite ? 1 : 0, onsite ? now : null, now).run()
+        v.teacher_name, v.teacher_phone, v.allergy, v.uniform_ok, v.consent, onsite ? 1 : 0, onsite ? now : null, onsite ? 1 : 0, now).run()
   } catch (e: any) {
     if (String(e?.message || e).includes('UNIQUE')) return c.json({ ok: false, error: '같은 이름·휴대폰으로 이미 신청된 내역이 있습니다. 목록에서 검색해 출석 처리해 주세요.' }, 409)
     throw e

@@ -124,7 +124,7 @@
         '<div class="tbl-wrap"><table class="t"><thead><tr><th>#</th><th>상태</th><th>프로그램</th><th>이름</th><th>휴대폰</th><th>중학교</th><th>반/번</th><th>내신%</th><th>보호자</th><th>담임교사</th><th>알레르기</th><th>신청시각(KST)</th><th>관리</th></tr></thead><tbody>' +
         (regs.map((r) => {
           const st = ST[r.status];
-          return '<tr class="' + (r.status === 'cancelled' ? 'cx' : r.status === 'waiting' ? 'wt' : '') + '"><td>' + r.id + '</td><td><span class="chip ' + st[1] + '">' + st[0] + '</span>' + (r.is_manual ? ' <span class="chip c-man">수기</span>' : '') + (r.cancelled_by ? ' <span class="mini">(' + (r.cancelled_by === 'self' ? '본인' : '관리자') + ')</span>' : '') + '</td>' +
+          return '<tr class="' + (r.status === 'cancelled' ? 'cx' : r.status === 'waiting' ? 'wt' : '') + '"><td>' + r.id + '</td><td><span class="chip ' + st[1] + '">' + st[0] + '</span>' + (r.is_onsite ? ' <span class="chip c-man">현장등록</span>' : r.is_manual ? ' <span class="chip c-man">수기</span>' : '') + (r.cancelled_by ? ' <span class="mini">(' + (r.cancelled_by === 'self' ? '본인' : '관리자') + ')</span>' : '') + '</td>' +
             '<td>' + SESSIONS[r.session].l + ' ' + DEPTS[r.dept].s + '</td><td><b>' + esc(r.name) + '</b></td><td>' + fmtPhone(r.phone) + '</td><td>' + esc(r.school) + '</td><td>' + (r.class_no || '-') + '/' + (r.student_no || '-') + '</td><td>' + (r.grade_pct == null ? '-' : r.grade_pct + '%') + '</td>' +
             '<td>' + esc(r.guardian_name) + '<br><span class="mini">' + fmtPhone(r.guardian_phone) + '</span></td><td>' + esc(r.teacher_name) + '<br><span class="mini">' + fmtPhone(r.teacher_phone) + '</span></td>' +
             '<td>' + (r.allergy ? '<span class="chip c-al">' + esc(r.allergy) + '</span>' : '-') + '</td><td>' + kst(r.created_at) + '</td>' +
@@ -200,7 +200,7 @@
     const draw = () => {
       const done = items.filter((r) => r.attended).length;
       $('#ci-result').innerHTML = '<div class="mini" style="margin-bottom:8px">확정자 <b>' + items.length + '</b>명 중 출석 <b id="ci-done" style="color:var(--ok)">' + done + '</b>명 · 체크박스를 눌러 출석 처리하세요.</div><div class="ci-list">' +
-        (items.map((r) => '<label class="ci ' + (r.attended ? 'on' : '') + '"><input type="checkbox" data-a="' + r.id + '"' + (r.attended ? ' checked' : '') + '><div style="flex:1"><div class="nm">' + esc(r.name) + ' <span class="mini">' + esc(r.school) + '</span></div><div class="mt">' + SESSIONS[r.session].l + ' ' + DEPTS[r.dept].s + ' · ' + fmtPhone(r.phone) + (r.class_no ? ' · 3-' + r.class_no + '-' + r.student_no : '') + (r.attended_at ? ' · 출석 ' + kst(r.attended_at).slice(11) : '') + '</div>' + (r.allergy ? '<div class="al">⚠ 알레르기: ' + esc(r.allergy) + '</div>' : '') + '</div></label>').join('') || '<div class="card mini">검색 결과가 없습니다. 신청하지 않은 학생이라면 위의 <b>➕ 현장 등록</b>을 눌러 주세요.</div>') + '</div>';
+        (items.map((r) => '<label class="ci ' + (r.attended ? 'on' : '') + '"><input type="checkbox" data-a="' + r.id + '"' + (r.attended ? ' checked' : '') + '><div style="flex:1"><div class="nm">' + esc(r.name) + ' <span class="mini">' + esc(r.school) + '</span>' + (r.is_onsite ? ' <span class="chip c-man">현장등록</span>' : '') + '</div><div class="mt">' + SESSIONS[r.session].l + ' ' + DEPTS[r.dept].s + ' · ' + fmtPhone(r.phone) + (r.class_no ? ' · 3-' + r.class_no + '-' + r.student_no : '') + (r.attended_at ? ' · 출석 ' + kst(r.attended_at).slice(11) : '') + '</div>' + (r.allergy ? '<div class="al">⚠ 알레르기: ' + esc(r.allergy) + '</div>' : '') + '</div></label>').join('') || '<div class="card mini">검색 결과가 없습니다. 신청하지 않은 학생이라면 위의 <b>➕ 현장 등록</b>을 눌러 주세요.</div>') + '</div>';
       $$('[data-a]').forEach((c) => (c.onchange = async () => {
         const r = await api('/admin/registrations/' + c.dataset.a + '/attend', { body: { attended: c.checked } });
         if (!r.ok) { toast('저장 실패'); c.checked = !c.checked; return; }
@@ -247,10 +247,10 @@
       .sort((a, b) => a.school.localeCompare(b.school, 'ko') || (a.class_no || 0) - (b.class_no || 0) || (a.student_no || 0) - (b.student_no || 0) || a.name.localeCompare(b.name, 'ko'));
     if (!rows.length) return toast('출석 처리된 학생이 아직 없습니다.');
     const tm = (iso) => { if (!iso) return ''; return new Date(new Date(iso).getTime() + 9 * 3600e3).toISOString().slice(0, 19).replace('T', ' '); };
-    const aoa = [['중학교', '이름', '반', '번호', '참여 프로그램', '출석체크 시간']]
-      .concat(rows.map((r) => [r.school, r.name, r.class_no || '', r.student_no || '', SESSIONS[r.session].l + ' (' + SESSIONS[r.session].prog + ') ' + DEPTS[r.dept].n, tm(r.attended_at)]));
+    const aoa = [['중학교', '이름', '반', '번호', '참여 프로그램', '출석체크 시간', '구분']]
+      .concat(rows.map((r) => [r.school, r.name, r.class_no || '', r.student_no || '', SESSIONS[r.session].l + ' (' + SESSIONS[r.session].prog + ') ' + DEPTS[r.dept].n, tm(r.attended_at), r.is_onsite ? '현장등록' : '']));
     const ws = XLSX.utils.aoa_to_sheet(aoa);
-    ws['!cols'] = [20, 12, 6, 6, 34, 20].map((w) => ({ wch: w }));
+    ws['!cols'] = [20, 12, 6, 6, 34, 20, 10].map((w) => ({ wch: w }));
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, '출석자 명단');
     XLSX.writeFile(wb, '진로캠프_출석자명단_' + today() + '.xlsx');
@@ -278,7 +278,7 @@
     if (schoolOnly) { add('소속 중학교별 명단', sRows, sCols); XLSX.writeFile(wb, '진로캠프_중학교별명단_' + today() + '.xlsx'); return; }
 
     add('전체신청현황', [['번호', '상태', '신청 차시', '학과', '이름', '휴대폰', '이메일', '소속 중학교', '학년', '반', '번호', '예상 내신(%)', '보호자', '보호자 연락처', '담임(진로)교사', '교사 연락처', '알레르기', '교복확인', '수기추가', '출석', '신청시각(KST)', '취소시각(KST)', '취소자']]
-      .concat(all.map((r) => [r.id, stK[r.status], SESSIONS[r.session].l + ' (' + SESSIONS[r.session].prog + ')', DEPTS[r.dept].n, r.name, ph(r.phone), r.email || '', r.school, 3, r.class_no || '', r.student_no || '', r.grade_pct == null ? '' : r.grade_pct + '%', r.guardian_name, ph(r.guardian_phone), r.teacher_name, ph(r.teacher_phone), r.allergy || '없음', r.uniform_ok ? 'Y' : '', r.is_manual ? 'Y' : '', r.attended ? 'Y' : '', kst(r.created_at), kst(r.cancelled_at), r.cancelled_by ? (r.cancelled_by === 'self' ? '본인' : '관리자') : ''])),
+      .concat(all.map((r) => [r.id, stK[r.status], SESSIONS[r.session].l + ' (' + SESSIONS[r.session].prog + ')', DEPTS[r.dept].n, r.name, ph(r.phone), r.email || '', r.school, 3, r.class_no || '', r.student_no || '', r.grade_pct == null ? '' : r.grade_pct + '%', r.guardian_name, ph(r.guardian_phone), r.teacher_name, ph(r.teacher_phone), r.allergy || '없음', r.uniform_ok ? 'Y' : '', r.is_onsite ? '현장등록' : r.is_manual ? 'Y' : '', r.attended ? 'Y' : '', kst(r.created_at), kst(r.cancelled_at), r.cancelled_by ? (r.cancelled_by === 'self' ? '본인' : '관리자') : ''])),
       [6, 6, 22, 16, 10, 15, 22, 16, 5, 5, 5, 10, 10, 15, 12, 15, 18, 8, 8, 6, 17, 17, 8]);
 
     add('차시·학과별 요약', [['차시', '시간', '학과', '정원', '확정', '대기', '취소', '잔여', '출석', '상태', '등록 장소', '상담 장소']]
@@ -291,7 +291,7 @@
     programs.forEach((p) => {
       const rows = conf.filter((r) => r.program_id === p.id).sort((a, b) => a.name.localeCompare(b.name, 'ko'));
       const t = [[SESSIONS[p.session].l + ' ' + DEPTS[p.dept].n + ' 출석부 (' + SESSIONS[p.session].prog + ' / 등록 ' + SESSIONS[p.session].reg + ' 학교 정문)'], ['No', '이름', '소속 중학교', '반/번', '휴대폰', '알레르기', '출석(✔)', '비고']]
-        .concat(rows.map((r, i) => [i + 1, r.name, r.school, (r.class_no || '-') + '/' + (r.student_no || '-'), ph(r.phone), r.allergy || '', r.attended ? '✔' : '', r.is_manual ? '수기추가' : '']));
+        .concat(rows.map((r, i) => [i + 1, r.name, r.school, (r.class_no || '-') + '/' + (r.student_no || '-'), ph(r.phone), r.allergy || '', r.attended ? '✔' : '', r.is_onsite ? '현장등록' : r.is_manual ? '수기추가' : '']));
       add('출석부_' + SESSIONS[p.session].l + '_' + DEPTS[p.dept].s, t, [5, 10, 18, 8, 15, 20, 9, 10]);
     });
 

@@ -216,7 +216,7 @@ app.get('/admin', (c) => {
 <body class="adm"><div id="app"></div>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js"></script>
-<script src="/static/common.js?v=1"></script><script src="/static/admin.js?v=4"></script></body></html>`
+<script src="/static/common.js?v=1"></script><script src="/static/admin.js?v=5"></script></body></html>`
   )
 })
 
