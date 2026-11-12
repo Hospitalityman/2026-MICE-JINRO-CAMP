@@ -158,17 +158,19 @@
     $('#fadd').onclick = () => addModal(filter.program_id);
   }
 
-  function addModal(pid) {
+  function addModal(pid, onsite, presetName) {
     const m = document.createElement('div'); m.className = 'modal';
-    m.innerHTML = '<div class="box"><h3>관리자 수기 추가 <span class="mini">(정원 무관 · 즉시 확정)</span></h3><form id="af">' +
+    m.innerHTML = '<div class="box"><h3>' + (onsite ? '현장 등록 <span class="mini">(정원 무관 · 즉시 확정 + 출석 처리)</span>' : '관리자 수기 추가 <span class="mini">(정원 무관 · 즉시 확정)</span>') + '</h3><form id="af">' +
       '<label class="f">프로그램 *</label><select id="a_p">' + programs.map((p) => '<option value="' + p.id + '"' + (String(p.id) === String(pid) ? ' selected' : '') + '>' + pLabel(p) + '</option>').join('') + '</select>' +
-      '<div class="row2"><div><label class="f">이름 *</label><input type="text" id="a_name"></div><div><label class="f">휴대폰 *</label><input type="tel" id="a_phone" inputmode="numeric" placeholder="010-0000-0000"></div></div>' +
+      '<div class="row2"><div><label class="f">이름 *</label><input type="text" id="a_name" value="' + esc(presetName || '') + '"></div><div><label class="f">휴대폰 *</label><input type="tel" id="a_phone" inputmode="numeric" placeholder="010-0000-0000"></div></div>' +
       '<label class="f">소속 중학교 *</label><input type="text" id="a_school">' +
-      '<div class="row2"><div><label class="f">반</label><input type="number" id="a_class"></div><div><label class="f">번호</label><input type="number" id="a_no"></div></div>' +
+      '<div class="row2"><div><label class="f">반' + (onsite ? ' *' : '') + '</label><input type="number" id="a_class" inputmode="numeric"></div><div><label class="f">번호' + (onsite ? ' *' : '') + '</label><input type="number" id="a_no" inputmode="numeric"></div></div>' +
+      (onsite ? '<details style="margin-top:10px"><summary class="mini" style="cursor:pointer">추가 정보 입력 (선택)</summary>' : '') +
       '<div class="row2"><div><label class="f">예상 내신(%)</label><input type="number" step="0.1" id="a_pct"></div><div><label class="f">이메일</label><input type="email" id="a_email"></div></div>' +
       '<div class="row2"><div><label class="f">보호자 성함</label><input type="text" id="a_gn"></div><div><label class="f">보호자 연락처</label><input type="tel" id="a_gp" inputmode="numeric"></div></div>' +
       '<div class="row2"><div><label class="f">담임교사 성함</label><input type="text" id="a_tn"></div><div><label class="f">담임교사 연락처</label><input type="tel" id="a_tp" inputmode="numeric"></div></div>' +
       '<label class="f">알레르기 <small>(없으면 비워 두세요)</small></label><input type="text" id="a_al">' +
+      (onsite ? '</details>' : '') +
       '<div id="a_err" class="alert al-bad hide"></div><div style="display:flex;gap:8px;margin-top:16px"><button type="button" class="btn btn-line" id="a_x" style="flex:1">닫기</button><button class="btn btn-primary" style="flex:2">추가</button></div></form></div>';
     document.body.appendChild(m);
     ['a_phone', 'a_gp', 'a_tp'].forEach((i) => bindPhone($('#' + i)));
@@ -176,8 +178,8 @@
     $('#af').onsubmit = async (e) => {
       e.preventDefault();
       const al = $('#a_al').value.trim();
-      const j = await api('/admin/registrations', { body: { program_id: Number($('#a_p').value), name: $('#a_name').value, phone: $('#a_phone').value, school: $('#a_school').value, class_no: $('#a_class').value, student_no: $('#a_no').value, grade_pct: $('#a_pct').value, email: $('#a_email').value, guardian_name: $('#a_gn').value, guardian_phone: $('#a_gp').value, teacher_name: $('#a_tn').value, teacher_phone: $('#a_tp').value, allergy_has: !!al, allergy: al, uniform_ok: true, consent: true } });
-      if (j.ok) { m.remove(); toast('추가되었습니다.'); render(); } else { const er = $('#a_err'); er.textContent = j.error || '오류'; er.classList.remove('hide'); }
+      const j = await api('/admin/registrations', { body: { program_id: Number($('#a_p').value), name: $('#a_name').value, phone: $('#a_phone').value, school: $('#a_school').value, class_no: $('#a_class').value, student_no: $('#a_no').value, grade_pct: $('#a_pct').value, email: $('#a_email').value, guardian_name: $('#a_gn').value, guardian_phone: $('#a_gp').value, teacher_name: $('#a_tn').value, teacher_phone: $('#a_tp').value, allergy_has: !!al, allergy: al, uniform_ok: true, consent: true, onsite: !!onsite } });
+      if (j.ok) { m.remove(); toast(onsite ? '현장 등록 및 출석 처리되었습니다.' : '추가되었습니다.'); if (onsite) await loadOverview(); render(); } else { const er = $('#a_err'); er.textContent = j.error || '오류'; er.classList.remove('hide'); }
     };
   }
 
@@ -186,15 +188,19 @@
     const body = $('#body');
     body.innerHTML = '<div class="toolbar"><select id="cp"><option value="">전체 프로그램</option>' + programs.map((p) => '<option value="' + p.id + '"' + (String(p.id) === String(ciFilter.program_id) ? ' selected' : '') + '>' + pLabel(p) + '</option>').join('') + '</select>' +
       '<input type="search" id="cq" placeholder="🔍 이름 · 중학교 · 전화번호(뒷자리) 검색" value="' + esc(ciFilter.q) + '" autocomplete="off" enterkeyhint="search"></div>' +
-      '<div style="margin:2px 0 10px"><button type="button" class="btn btn-plum btn-block" id="ci-xlsx">📥 출석 확인된 학생만 엑셀 다운로드</button></div>' +
+      '<div style="margin:2px 0 10px;display:grid;grid-template-columns:1fr 1fr;gap:8px"><button type="button" class="btn btn-primary" id="ci-onsite">➕ 현장 등록</button><button type="button" class="btn btn-plum" id="ci-xlsx">📥 출석자 엑셀</button></div>' +
       '<div id="ci-result"><p class="mini">불러오는 중…</p></div>';
     $('#ci-xlsx').onclick = () => exportAttended();
+    $('#ci-onsite').onclick = () => {
+      const qv = ($('#cq').value || '').trim();
+      addModal(ciFilter.program_id || (programs[0] && programs[0].id), true, /^[가-힣a-zA-Z\s]{2,}$/.test(qv) ? qv : '');
+    };
 
     let seq = 0, items = [];
     const draw = () => {
       const done = items.filter((r) => r.attended).length;
       $('#ci-result').innerHTML = '<div class="mini" style="margin-bottom:8px">확정자 <b>' + items.length + '</b>명 중 출석 <b id="ci-done" style="color:var(--ok)">' + done + '</b>명 · 체크박스를 눌러 출석 처리하세요.</div><div class="ci-list">' +
-        (items.map((r) => '<label class="ci ' + (r.attended ? 'on' : '') + '"><input type="checkbox" data-a="' + r.id + '"' + (r.attended ? ' checked' : '') + '><div style="flex:1"><div class="nm">' + esc(r.name) + ' <span class="mini">' + esc(r.school) + '</span></div><div class="mt">' + SESSIONS[r.session].l + ' ' + DEPTS[r.dept].s + ' · ' + fmtPhone(r.phone) + (r.class_no ? ' · 3-' + r.class_no + '-' + r.student_no : '') + (r.attended_at ? ' · 출석 ' + kst(r.attended_at).slice(11) : '') + '</div>' + (r.allergy ? '<div class="al">⚠ 알레르기: ' + esc(r.allergy) + '</div>' : '') + '</div></label>').join('') || '<div class="card mini">검색 결과가 없습니다.</div>') + '</div>';
+        (items.map((r) => '<label class="ci ' + (r.attended ? 'on' : '') + '"><input type="checkbox" data-a="' + r.id + '"' + (r.attended ? ' checked' : '') + '><div style="flex:1"><div class="nm">' + esc(r.name) + ' <span class="mini">' + esc(r.school) + '</span></div><div class="mt">' + SESSIONS[r.session].l + ' ' + DEPTS[r.dept].s + ' · ' + fmtPhone(r.phone) + (r.class_no ? ' · 3-' + r.class_no + '-' + r.student_no : '') + (r.attended_at ? ' · 출석 ' + kst(r.attended_at).slice(11) : '') + '</div>' + (r.allergy ? '<div class="al">⚠ 알레르기: ' + esc(r.allergy) + '</div>' : '') + '</div></label>').join('') || '<div class="card mini">검색 결과가 없습니다. 신청하지 않은 학생이라면 위의 <b>➕ 현장 등록</b>을 눌러 주세요.</div>') + '</div>';
       $$('[data-a]').forEach((c) => (c.onchange = async () => {
         const r = await api('/admin/registrations/' + c.dataset.a + '/attend', { body: { attended: c.checked } });
         if (!r.ok) { toast('저장 실패'); c.checked = !c.checked; return; }

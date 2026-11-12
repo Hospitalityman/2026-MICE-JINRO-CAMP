@@ -274,17 +274,21 @@ admin.post('/registrations', async (c) => {
   if (!val.ok) return c.json(val, 400)
   const v = val.v
   v.name = normName(v.name)
+  // 현장 등록: 반·번호 필수 (출석자 엑셀에 포함되므로), 등록과 동시에 출석 처리
+  const onsite = !!b.onsite
+  if (onsite && (v.class_no == null || v.student_no == null)) return c.json({ ok: false, error: '현장 등록은 반과 번호를 모두 입력해 주세요.' }, 400)
   const prog = await db.prepare('SELECT id FROM programs WHERE id=?').bind(v.program_id).first()
   if (!prog) return c.json({ ok: false, error: '차시·학과를 선택해 주세요.' }, 400)
+  const now = nowIso()
   try {
     await db.prepare(
       `INSERT INTO registrations (program_id,name,phone,email,school,grade,class_no,student_no,grade_pct,guardian_name,guardian_phone,
-        teacher_name,teacher_phone,allergy,uniform_ok,consent,status,is_manual,created_at)
-       VALUES (?,?,?,?,?,3,?,?,?,?,?,?,?,?,?,?,'confirmed',1,?)`)
+        teacher_name,teacher_phone,allergy,uniform_ok,consent,status,attended,attended_at,is_manual,created_at)
+       VALUES (?,?,?,?,?,3,?,?,?,?,?,?,?,?,?,?,'confirmed',?,?,1,?)`)
       .bind(v.program_id, v.name, v.phone, v.email, v.school, v.class_no, v.student_no, v.grade_pct, v.guardian_name, v.guardian_phone,
-        v.teacher_name, v.teacher_phone, v.allergy, v.uniform_ok, v.consent, nowIso()).run()
+        v.teacher_name, v.teacher_phone, v.allergy, v.uniform_ok, v.consent, onsite ? 1 : 0, onsite ? now : null, now).run()
   } catch (e: any) {
-    if (String(e?.message || e).includes('UNIQUE')) return c.json({ ok: false, error: '같은 이름·휴대폰으로 이미 신청된 내역이 있습니다.' }, 409)
+    if (String(e?.message || e).includes('UNIQUE')) return c.json({ ok: false, error: '같은 이름·휴대폰으로 이미 신청된 내역이 있습니다. 목록에서 검색해 출석 처리해 주세요.' }, 409)
     throw e
   }
   return c.json({ ok: true })
